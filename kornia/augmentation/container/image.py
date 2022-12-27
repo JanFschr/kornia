@@ -152,12 +152,15 @@ class ImageSequential(SequentialBase):
         mix_indices = self.get_mix_augmentation_indices(self.named_children())
         # kick out the mix augmentations
         multinomial_weights[mix_indices] = 0
-        indices = torch.multinomial(
-            multinomial_weights,
-            num_samples,
-            # enable replacement if non-mix augmentation is less than required
-            replacement=num_samples > multinomial_weights.sum().item(),
-        )
+        if multinomial_weights.numel() > 0:
+            indices = torch.multinomial(
+                multinomial_weights,
+                num_samples,
+                # enable replacement if non-mix augmentation is less than required
+                replacement= num_samples > multinomial_weights.sum().item(), 
+            )
+        else:
+            indices = torch.tensor([])
 
         mix_added = False
         if with_mix and len(mix_indices) != 0:
